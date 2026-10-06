@@ -92,7 +92,7 @@ export default function SubscriptionsPage() {
       .catch((err) => {
         setError(
           err.response?.data?.message ||
-            "Failed to load subscriptions. Please try again."
+          "Failed to load subscriptions. Please try again."
         );
       })
       .finally(() => {
@@ -201,7 +201,7 @@ export default function SubscriptionsPage() {
       .catch((err) => {
         alert(
           err.response?.data?.message ||
-            "Failed to delete subscription plan"
+          "Failed to delete subscription plan"
         );
       })
       .finally(() => {
@@ -224,11 +224,11 @@ export default function SubscriptionsPage() {
             (subscription) =>
               subscription.id === id
                 ? {
-                    ...subscription,
-                    is_active:
-                      response.data
-                        .is_active,
-                  }
+                  ...subscription,
+                  is_active:
+                    response.data
+                      .is_active,
+                }
                 : subscription
           )
         );
@@ -236,7 +236,7 @@ export default function SubscriptionsPage() {
       .catch((err) => {
         alert(
           err.response?.data?.message ||
-            "Failed to update subscription status"
+          "Failed to update subscription status"
         );
       })
       .finally(() => {
@@ -270,7 +270,7 @@ export default function SubscriptionsPage() {
     1,
     Math.ceil(
       filteredSubscriptions.length /
-        itemsPerPage
+      itemsPerPage
     )
   );
 
@@ -351,14 +351,13 @@ export default function SubscriptionsPage() {
       <SuperAdminSidebar />
 
       <main
-        className={`superadmin-main-content ${
-          sidebarCollapsed
+        className={`superadmin-main-content ${sidebarCollapsed
             ? "sidebar-collapsed-main"
             : "sidebar-expanded-main"
-        }`}
+          }`}
       >
         <div
-          className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-3"
+          className="w-full space-y-6 pt-12 lg:pt-0"
           style={{
             fontFamily:
               "'Inter', sans-serif",
@@ -520,17 +519,17 @@ export default function SubscriptionsPage() {
                     <tbody className="divide-y divide-gray-100">
                       {filteredSubscriptions.length ===
                         0 && (
-                        <tr>
-                          <td
-                            colSpan={5}
-                            className="px-5 py-14 text-center text-sm text-gray-500"
-                          >
-                            {searchQuery
-                              ? "No matching subscriptions found."
-                              : "No subscription plans found."}
-                          </td>
-                        </tr>
-                      )}
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="px-5 py-14 text-center text-sm text-gray-500"
+                            >
+                              {searchQuery
+                                ? "No matching subscriptions found."
+                                : "No subscription plans found."}
+                            </td>
+                          </tr>
+                        )}
 
                       {paginatedSubscriptions.map(
                         (subscription) => (
@@ -580,18 +579,16 @@ export default function SubscriptionsPage() {
 
                             <td className="px-3 py-2.5">
                               <span
-                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${
-                                  subscription.is_active
+                                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${subscription.is_active
                                     ? "bg-green-50 text-green-700"
                                     : "bg-red-50 text-red-700"
-                                }`}
+                                  }`}
                               >
                                 <span
-                                  className={`h-2 w-2 rounded-full ${
-                                    subscription.is_active
+                                  className={`h-2 w-2 rounded-full ${subscription.is_active
                                       ? "bg-green-500"
                                       : "bg-red-500"
-                                  }`}
+                                    }`}
                                 />
 
                                 {subscription.is_active
@@ -684,7 +681,7 @@ export default function SubscriptionsPage() {
                     to{" "}
                     {Math.min(
                       safePage *
-                        itemsPerPage,
+                      itemsPerPage,
                       filteredSubscriptions.length
                     )}{" "}
                     of{" "}
@@ -750,16 +747,15 @@ export default function SubscriptionsPage() {
                             aria-label={`Page ${page}`}
                             aria-current={
                               page ===
-                              safePage
+                                safePage
                                 ? "page"
                                 : undefined
                             }
-                            className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
-                              page ===
-                              safePage
+                            className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${page ===
+                                safePage
                                 ? "bg-violet-600 text-white shadow-sm"
                                 : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                            }`}
+                              }`}
                           >
                             {page}
                           </button>

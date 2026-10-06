@@ -106,7 +106,7 @@ export default function AddSubscriptionPage() {
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-                <div className="mx-auto max-w-5xl overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <div className="mx-auto max-w-5xl w-full space-y-6 pt-12 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
                     <div className="mb-6 flex flex-col items-start justify-between gap-3 border-b border-gray-200 pb-5 sm:flex-row sm:items-center">
                         <div className="pl-px">
                             <h1 className="text-2xl font-bold text-gray-900">Add New Subscription Plan</h1>

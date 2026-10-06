@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Google Fonts */}
 
@@ -80,7 +80,7 @@ export default function RootLayout({
 
       </head>
 
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col" suppressHydrationWarning>
 
         {/* GLOBAL TOASTS + CONFIRM MODAL */}
 

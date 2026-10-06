@@ -158,7 +158,7 @@ export default function RestaurantPage() {
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-                <div className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <div className="w-full space-y-6 pt-12 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
                     {loading ? (
                         <div className="flex min-h-[calc(100vh-42px)] flex-col items-center justify-center gap-3">
 

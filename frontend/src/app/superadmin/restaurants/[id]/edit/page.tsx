@@ -134,6 +134,13 @@ export default function EditRestaurantPage() {
                 router.push("/superadmin/restaurants?updated=true");
             })
             .catch((err) => {
+                if (err.response?.data?.errors) {
+                    const serverErrors: Record<string, string> = {};
+                    Object.entries(err.response.data.errors).forEach(([key, messages]) => {
+                        serverErrors[key] = Array.isArray(messages) ? messages[0] : String(messages);
+                    });
+                    setErrors(serverErrors);
+                }
                 alert(err.response?.data?.message || "Failed to update restaurant");
             })
             .finally(() => {
@@ -145,7 +152,7 @@ export default function EditRestaurantPage() {
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-                <div className="mx-auto max-w-5xl overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <div className="mx-auto max-w-5xl w-full space-y-6 pt-12 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
                     <div className="mb-6 flex flex-col items-start justify-between gap-3 border-b border-gray-200 pb-5 sm:flex-row sm:items-center">
                         <div className="pl-px">
                             <h1 className="text-2xl font-bold text-gray-900">Edit Restaurant</h1>

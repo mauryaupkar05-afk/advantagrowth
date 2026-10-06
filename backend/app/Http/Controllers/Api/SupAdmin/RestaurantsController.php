@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Api\SupAdmin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Restaurant;
+use App\Models\User;
 use App\Models\Order;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class RestaurantsController extends Controller
 {
@@ -225,7 +229,9 @@ class RestaurantsController extends Controller
     public function index()
     {
         try {
-            $data = Restaurant::latest()->get();
+            $data = Restaurant::with(['users' => function ($query) {
+                $query->where('role', 'owner');
+            }])->latest()->get();
 
             return response()->json([
                 'success' => true,
@@ -233,6 +239,10 @@ class RestaurantsController extends Controller
                 'data' => $data,
             ]);
         } catch (\Exception $e) {
+            Log::error('Superadmin failed to fetch restaurants: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch restaurants. Please try again.',
@@ -245,7 +255,7 @@ class RestaurantsController extends Controller
      */
     public function store(Request $req)
     {
-        $validate=$req->validate([
+        $validate = $req->validate([
             'name' => 'required|string|max:255',
             'legal_name' => 'nullable|string|max:255',
             'business_category' => 'nullable|string|max:255',
@@ -256,7 +266,7 @@ class RestaurantsController extends Controller
             'postal_code' => 'nullable|string|max:30',
             'country' => 'nullable|string|max:100',
             'phone' => 'required|string|max:20',
-            'email' => 'required|email|max:255|unique:restaurants,email',
+            'email' => 'required|email|max:255|unique:restaurants,email|unique:users,email',
             'password' => 'required|string|min:6',
             'website' => 'nullable|string|max:255',
             'currency' => 'nullable|string|max:10',
@@ -264,19 +274,45 @@ class RestaurantsController extends Controller
             'opening_time' => 'nullable|date_format:H:i',
             'closing_time' => 'nullable|date_format:H:i',
         ]);
+
+        $password = $validate['password'];
+        unset($validate['password']);
+        $validate['email'] = strtolower(trim($validate['email']));
+        $validate['slug'] = Str::slug($validate['name']) . '-' . Str::lower(Str::random(8));
+        $validate['is_active'] = true;
+
         try {
-            $validate['slug'] = Str::slug($validate['name']) . '-' . time();
-            $restaurant = Restaurant::create($validate);
+            $restaurant = DB::transaction(function () use ($validate, $password) {
+                $restaurant = Restaurant::create($validate);
+
+                $ownerName = !empty($validate['legal_name']) ? trim($validate['legal_name']) : trim($validate['name']);
+                User::create([
+                    'restaurant_id' => $restaurant->id,
+                    'owner_name' => $ownerName,
+                    'email' => $validate['email'],
+                    'phone' => trim($validate['phone']),
+                    'password' => Hash::make($password),
+                    'role' => 'owner',
+                    'is_active' => true,
+                    'email_verified_at' => now(),
+                ]);
+
+                return $restaurant;
+            });
 
             return response()->json([
                 'success' => true,
                 'message' => 'Restaurant created successfully',
                 'data' => $restaurant,
-            ]);
+            ], 201);
         } catch (\Exception $e) {
+            Log::error('Superadmin restaurant creation failed: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create restaurant. Please try again.',
+                'message' => 'Failed to create restaurant: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -287,7 +323,10 @@ class RestaurantsController extends Controller
     public function show(string $id)
     {
         try {
-            $restaurant = Restaurant::find($id);
+            $restaurant = Restaurant::with(['users' => function ($query) {
+                $query->where('role', 'owner');
+            }])->find($id);
+
             if (!$restaurant) {
                 return response()->json([
                     'success' => false,
@@ -313,15 +352,28 @@ class RestaurantsController extends Controller
      */
     public function update(Request $req, string $id)
     {
-        $restaurant=Restaurant::find($id);
-           if(!$restaurant){
+        $restaurant = Restaurant::with(['users' => function ($query) {
+            $query->where('role', 'owner');
+        }])->find($id);
+
+        if (!$restaurant) {
             return response()->json([
-                 'success' => false,
-            'message' => 'Restaurant not found',
-            ],404);
+                'success' => false,
+                'message' => 'Restaurant not found',
+            ], 404);
         }
 
-          $validate=$req->validate([
+        $ownerUser = $restaurant->users->first();
+        $ownerUserId = $ownerUser?->id;
+
+        $uniqueEmailRule = 'required|email|max:255|unique:restaurants,email,' . $id;
+        if ($ownerUserId) {
+            $uniqueEmailRule .= '|unique:users,email,' . $ownerUserId;
+        } else {
+            $uniqueEmailRule .= '|unique:users,email';
+        }
+
+        $validate = $req->validate([
             'name' => 'required|string|max:255',
             'legal_name' => 'nullable|string|max:255',
             'business_category' => 'nullable|string|max:255',
@@ -332,7 +384,7 @@ class RestaurantsController extends Controller
             'postal_code' => 'nullable|string|max:30',
             'country' => 'nullable|string|max:100',
             'phone' => 'required|string|max:20',
-            'email' => 'required|email|max:255|unique:restaurants,email,' . $id,
+            'email' => $uniqueEmailRule,
             'password' => 'nullable|string|min:6',
             'website' => 'nullable|string|max:255',
             'currency' => 'nullable|string|max:10',
@@ -341,12 +393,40 @@ class RestaurantsController extends Controller
             'closing_time' => 'nullable|date_format:H:i',
         ]);
 
-        if (empty($validate['password'])) {
-            unset($validate['password']);
-        }
+        $newPassword = !empty($validate['password']) ? $validate['password'] : null;
+        unset($validate['password']);
+        $validate['email'] = strtolower(trim($validate['email']));
 
         try {
-            $restaurant->update($validate);
+            DB::transaction(function () use ($restaurant, $ownerUser, $validate, $newPassword) {
+                $restaurant->update($validate);
+
+                if ($ownerUser) {
+                    $userUpdates = [
+                        'email' => $validate['email'],
+                        'phone' => trim($validate['phone']),
+                    ];
+                    if (!empty($validate['legal_name'])) {
+                        $userUpdates['owner_name'] = trim($validate['legal_name']);
+                    }
+                    if ($newPassword) {
+                        $userUpdates['password'] = Hash::make($newPassword);
+                    }
+                    $ownerUser->update($userUpdates);
+                } elseif ($newPassword) {
+                    $ownerName = !empty($validate['legal_name']) ? trim($validate['legal_name']) : trim($validate['name']);
+                    User::create([
+                        'restaurant_id' => $restaurant->id,
+                        'owner_name' => $ownerName,
+                        'email' => $validate['email'],
+                        'phone' => trim($validate['phone']),
+                        'password' => Hash::make($newPassword),
+                        'role' => 'owner',
+                        'is_active' => true,
+                        'email_verified_at' => now(),
+                    ]);
+                }
+            });
 
             return response()->json([
                 'success' => true,
@@ -354,9 +434,13 @@ class RestaurantsController extends Controller
                 'data' => $restaurant->fresh(),
             ]);
         } catch (\Exception $e) {
+            Log::error('Superadmin restaurant update failed: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update restaurant. Please try again.',
+                'message' => 'Failed to update restaurant: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -396,21 +480,29 @@ class RestaurantsController extends Controller
      */
     public function destroy(string $id)
     {
-        $restaurant=Restaurant::find($id);
-        if(!$restaurant){
+        $restaurant = Restaurant::find($id);
+        if (!$restaurant) {
             return response()->json([
-            'success' => false,
-            'message' => 'Restaurant not found',
-            ],404);
+                'success' => false,
+                'message' => 'Restaurant not found',
+            ], 404);
         }
+
         try {
-            $restaurant->delete();
+            DB::transaction(function () use ($restaurant) {
+                User::where('restaurant_id', $restaurant->id)->delete();
+                $restaurant->delete();
+            });
 
             return response()->json([
                 'success' => true,
                 'message' => 'Restaurant deleted successfully',
             ]);
         } catch (\Exception $e) {
+            Log::error('Superadmin restaurant deletion failed: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete restaurant. Please try again.',

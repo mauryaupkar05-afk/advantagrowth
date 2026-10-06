@@ -24,7 +24,6 @@ class Restaurant extends Model
 
         'phone',
         'email',
-        'password',
         'website',
 
         'currency',
@@ -34,17 +33,6 @@ class Restaurant extends Model
 
         'is_active',
     ];
-
-    protected $hidden = [
-        'password',
-    ];
-
-    protected function casts(): array
-    {
-        return [
-            'password' => 'hashed',
-        ];
-    }
 
     public function users(): HasMany
     {
@@ -61,31 +49,30 @@ class Restaurant extends Model
         return $this->hasMany(ContactMessage::class);
     }
 
-public function posConnections(): HasMany
-{
-    return $this->hasMany(PosConnection::class);
-}
+    public function posConnections(): HasMany
+    {
+        return $this->hasMany(PosConnection::class);
+    }
 
-public function posLocations(): HasMany
-{
-    return $this->hasMany(PosLocation::class);
-}
+    public function posLocations(): HasMany
+    {
+        return $this->hasMany(PosLocation::class);
+    }
 
-public function posSyncLogs(): HasMany
-{
-    return $this->hasMany(PosSyncLog::class);
-}
+    public function posSyncLogs(): HasMany
+    {
+        return $this->hasMany(PosSyncLog::class);
+    }
 
-public function subscriptions(): HasMany
-{
-    return $this->hasMany(RestaurantSubscription::class);
-}
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(RestaurantSubscription::class);
+    }
 
-public function currentSubscription(): HasOne
-{
-    return $this->hasOne(RestaurantSubscription::class)
-        ->where('status', 'active')
-        ->latestOfMany();
-}
-
+    public function currentSubscription(): HasOne
+    {
+        return $this->hasOne(RestaurantSubscription::class)
+            ->where('status', 'active')
+            ->latestOfMany();
+    }
 }

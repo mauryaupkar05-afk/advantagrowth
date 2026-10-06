@@ -221,12 +221,11 @@ export default function SubscriptionPaymentsPage() {
       <SuperAdminSidebar />
 
       <main
-        className={`superadmin-main-content ${
-          sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"
-        }`}
+        className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"
+          }`}
       >
         <div
-          className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-3"
+          className="w-full space-y-6 pt-12 lg:pt-0"
           style={{ fontFamily: "'Inter', sans-serif" }}
         >
           <div className="mb-6 flex flex-col items-start gap-3 border-b border-gray-200 pb-5 md:flex-row md:items-center md:justify-between">

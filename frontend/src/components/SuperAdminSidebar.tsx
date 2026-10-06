@@ -41,14 +41,18 @@ export default function SuperAdminSidebar() {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 1024);
+      const mobile = window.innerWidth <= 1024;
+      setIsMobile(mobile);
+      if (mobile) {
+        setCollapsed(true);
+      }
     };
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
 
     const saved = localStorage.getItem("superAdminSidebarCollapsed");
-    if (saved === "true") {
+    if (saved === "true" || window.innerWidth <= 1024) {
       setCollapsed(true);
     }
 
@@ -81,26 +85,26 @@ export default function SuperAdminSidebar() {
   };
 
   const handleLogout = () => {
-  sessionStorage.removeItem(
-    "token"
-  );
+    sessionStorage.removeItem(
+      "token"
+    );
 
-  localStorage.removeItem(
-    "role"
-  );
+    localStorage.removeItem(
+      "role"
+    );
 
-  localStorage.removeItem(
-    "user"
-  );
+    localStorage.removeItem(
+      "user"
+    );
 
-  window.dispatchEvent(
-    new Event("storage")
-  );
+    window.dispatchEvent(
+      new Event("storage")
+    );
 
-  router.replace(
-    "/superadmin/login"
-  );
-};
+    router.replace(
+      "/superadmin/login"
+    );
+  };
 
   const isActive = (href: string) => {
     if (href === "/superadmin/dashboard") {

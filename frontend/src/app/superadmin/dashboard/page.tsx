@@ -149,9 +149,9 @@ export default function SuperAdminDashboard() {
     <div className="superadmin-layout">
       <SuperAdminSidebar />
       <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-        <div className="dashboard-page">
+        <div className="dashboard-page pt-12 lg:pt-0">
           <div className="dashboard-container">
-            <div className="superadmin-hero mt-4">
+            <div className="superadmin-hero">
               <div className="superadmin-hero-glow superadmin-hero-glow-1"></div>
               <div className="superadmin-hero-glow superadmin-hero-glow-2"></div>
               <div className="superadmin-hero-content">
